@@ -1,0 +1,411 @@
+<!--
+===========================================================
+NFC Attendance System - Frontend Interface
+
+Author: Catherine Lacala
+
+Description:
+This page is displayed after an NFC tag is scanned.
+It retrieves student information from Google Apps Script,
+displays the student's current attendance status, and
+allows authorized staff to check students in or out.
+
+Features:
+• Mobile-friendly interface
+• Live attendance status display
+• Color-coded status indicators
+• One-tap Check In / Check Out
+• Google Apps Script integration
+===========================================================
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<!--
+    Configure the viewport for mobile devices.
+    viewport-fit=cover allows the page to use the entire screen on iPhones.
+-->
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<style>
+
+/*  Global Page Styles */
+/* Include padding and borders within element width */
+*{
+    box-sizing:border-box;
+}
+
+/* Center the attendance card on the screen */
+body{
+
+    margin:0;
+    padding:10px;
+
+    font-family:Arial, Helvetica, sans-serif;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    min-height:100vh;
+
+    /* Smooth transition when the background color changes */
+    transition:background-color .35s ease;
+
+}
+
+/* Background Colors
+   The page background changes depending on the
+   student's attendance status. 
+*/
+body.not-arrived{
+    background:#eeeeee;
+}
+
+body.checked-in{
+    background:#dff6df;
+}
+
+body.checked-out{
+    background:#ffe3e3;
+}
+
+/* Main Attendance Card */
+.card{
+
+    background:white;
+
+    width:98%;
+    max-width:700px;
+
+    padding:45px;
+
+    border-radius:28px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.18);
+
+}
+
+/* Student Information */
+/* Student's name displayed prominently */
+#name{
+    font-size:60px;
+    font-weight:700;
+    color:#222;
+    margin-bottom:12px;
+    text-align:center;
+    line-height:1.15;
+    word-wrap:break-word;
+}
+
+/* Grade level and team color */
+#info{
+
+    font-size:40px;
+
+    color:#666;
+
+    margin-bottom:30px;
+
+}
+
+/* Attendance Status Display */
+
+.status{
+
+    width:100%;
+
+    border-radius:16px;
+
+    padding:18px;
+
+    font-size:46px;
+
+    font-weight:bold;
+
+    margin-bottom:40px;
+
+}
+
+/* Status colors */
+.not-arrived{
+
+    background:#d9d9d9;
+
+    color:black;
+
+}
+
+.checked-in{
+
+    background:#4CAF50;
+
+    color:white;
+
+}
+
+.checked-out{
+
+    background:#E53935;
+
+    color:white;
+
+}
+
+/* Check In / Check Out Buttons */
+
+button{
+
+    width:100%;
+
+    padding:28px;
+
+    font-size:50px;
+
+    font-weight:bold;
+
+    border:none;
+
+    border-radius:20px;
+
+    cursor:pointer;
+
+    margin-bottom:40px;
+
+    transition:.2s;
+
+}
+
+/* Slight animation while pressing a button */
+button:active{
+
+    transform:scale(.97);
+
+}
+
+/* Disable button after attendance has been updated */
+button:disabled{
+
+    opacity:.45;
+
+    cursor:not-allowed;
+
+}
+
+
+/* Individual button colors */
+.checkin{
+
+    background:#43A047;
+
+    color:white;
+
+}
+
+.checkout{
+
+    background:#D32F2F;
+
+    color:white;
+
+}
+
+/* Loading Message */
+
+#saving{
+
+    font-size:22px;
+
+    color:#666;
+
+    margin-top:15px;
+
+    display:none;
+
+}
+
+/* Responsive Layout
+   Adjust spacing for phones and smaller screens.
+*/
+@media (max-width: 700px){
+
+    body{
+        padding:6px;
+    }
+
+    .card{
+        width:100%;
+        max-width:none;
+        min-height:95vh;
+        padding:40px 25px;
+        border-radius:20px;
+    }
+
+}
+
+</style>
+
+</head>
+
+<!-- Default page starts in the Not Arrived state -->
+<body class="not-arrived">
+
+<div class="card">
+
+<!-- Student information -->
+<div id="name"></div>
+
+<div id="info"></div>
+
+<!-- Current attendance status -->
+<div id="statusBox" class="status"></div>
+
+<!-- Check In button -->
+<button
+id="checkInBtn"
+class="checkin"
+onclick="update('Checked In')">
+
+🟢 ✓ CHECK IN
+
+</button>
+
+<!-- Check Out button -->
+<button
+id="checkOutBtn"
+class="checkout"
+onclick="update('Checked Out')">
+
+🔴 ⟲ CHECK OUT
+
+</button>
+
+<!-- Displayed while the spreadsheet is being updated -->
+<div id="saving">
+
+Updating Attendance...
+
+</div>
+
+</div>
+
+<script>
+
+/* Student Data
+   Values are injected from Apps Script into the page.
+*/
+const student = {
+  id: "<?= student.id ?>",
+  name: "<?= student.name ?>",
+  grade: "<?= student.grade ?>",
+  team: "<?= student.team ?>"
+};
+
+/* Current attendance status */
+let status = "<?= student.status ?>";
+
+/* Render Student Information
+   Displays the student's name, grade, and team. 
+*/
+function renderStudent() {
+  document.getElementById("name").textContent = student.name;
+  
+  document.getElementById("info").textContent =
+      `Grade ${student.grade} • Team ${student.team}`;
+}
+
+/* Render Attendance Status
+   Updates:
+   - Status text
+   - Status colors
+   - Background color
+   - Button availability 
+*/
+function renderStatus(){
+
+    const box=document.getElementById("statusBox");
+
+    box.innerText=status;
+
+    box.className="status";
+
+    document.body.className="";
+
+    if(status==="Checked In"){
+
+        box.classList.add("checked-in");
+        document.body.classList.add("checked-in");
+
+    }
+
+    else if(status==="Checked Out"){
+
+        box.classList.add("checked-out");
+        document.body.classList.add("checked-out");
+
+    }
+
+    else{
+
+        box.classList.add("not-arrived");
+        document.body.classList.add("not-arrived");
+
+    }
+
+    /* Prevent duplicate attendance updates */
+    document.getElementById("checkInBtn").disabled =
+        status==="Checked In";
+
+    document.getElementById("checkOutBtn").disabled =
+        status==="Checked Out";
+
+}
+
+/* Update Attendance
+   Sends the selected attendance action to the
+   Google Apps Script backend, then refreshes
+   the page without requiring a reload.
+*/
+function update(action){
+
+    /* Show loading message */
+    document.getElementById("saving").style.display="block";
+
+     /* Prevent multiple button presses */
+    document.getElementById("checkInBtn").disabled=true;
+
+    document.getElementById("checkOutBtn").disabled=true;
+
+     /* Call the Apps Script backend */
+    google.script.run
+
+    .withSuccessHandler(function(){
+
+    /* Update the page after the spreadsheet has been updated */
+    status = action;
+
+    renderStudent();
+    renderStatus();
+
+    document.getElementById("saving").style.display = "none";
+
+    })
+
+    .updateStatus(student.id, action);
+
+}
+
+/* Initialize the page when it first loads. */
+renderStudent();
+renderStatus();
+
+
+</script>
+
+</body>
+
+</html>
