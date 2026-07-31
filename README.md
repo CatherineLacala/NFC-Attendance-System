@@ -180,25 +180,28 @@ Unauthorized users receive an **Access Denied** page.
 
 ## Students Sheet
 
-*Insert screenshot here*
+![Students](assets/Students_Sheet.png)
 
 ---
 
 ## Check In Dashboard
 
-*Insert screenshot here*
+![CheckIn](assets/CheckIn_Dashboard.png)
 
 ---
 
 ## Check Out Dashboard
 
-*Insert screenshot here*
+![CheckOut](assets/CheckOut_Dashboard.png)
 
 ---
 
 ## Mobile Attendance Interface
-
-*Insert screenshot here*
+<p align="center">
+  <img src="assets/Mobile_UI_Not_Arrived.PNG" alt="NotArrived" width="30%" />
+  <img src="assets/Mobile_UI_Checked_In.PNG" alt="CheckedIN" width="30%" />
+  <img src="assets/Mobile_UI_Checked_Out.PNG" alt="CheckedOUT" width="30%" />
+</p>
 
 ---
 
@@ -206,19 +209,10 @@ Unauthorized users receive an **Access Denied** page.
 
 ### Screen Recording
 
-Insert your GIF or screen recording here.
+<p align="center">
+  <img src="assets/NFC_Scan_Demo.gif" alt="Demo" width="250" />
+</p>
 
-Example:
-
-```
-assets/demo.gif
-```
-
-or
-
-```
-https://github.com/.../assets/...
-```
 
 ---
 
@@ -235,27 +229,6 @@ Through this project I gained experience with:
 - User authentication
 - Data logging and auditing
 - Real-world workflow automation
-
----
-
-# Repository Structure
-
-```
-Attendance-System/
-
-│
-├── Code.gs
-├── index.html
-├── README.md
-│
-├── assets/
-│   ├── dashboard.png
-│   ├── students-sheet.png
-│   ├── mobile-ui.png
-│   └── demo.gif
-│
-└── LICENSE
-```
 
 ---
 
